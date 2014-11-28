@@ -1,0 +1,15 @@
+{
+  "name": "httpclient",
+  "version": "1.0.0",
+  "description": "",
+  "main": "httpclient.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "node-rest-client": "^1.4.1",
+    "request": "^2.47.0"
+  }
+}
