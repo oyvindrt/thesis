@@ -8,7 +8,7 @@ process.on('message', function(message) {
 	var obj = JSON.parse(message);
 	if (obj.type === "connectToServer") {
 		id = parseInt(obj.id);
-		ws = new WebSocket(obj.uri);
+		ws = new WebSocket(obj.addr);
 		ws.on('open', function() {
 			process.send(JSON.stringify({"type": "connected"}));
 		});

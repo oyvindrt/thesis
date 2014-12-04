@@ -1,8 +1,8 @@
 {
-  "name": "httpclient",
+  "name": "httppingclient",
   "version": "1.0.0",
   "description": "",
-  "main": "httpclient.js",
+  "main": "httppingclient.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

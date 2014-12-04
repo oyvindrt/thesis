@@ -1,6 +1,6 @@
 var EventSource = require('eventsource');
 
-var ws;
+var es;
 var id;
 var messagesReceived = 0;
 
@@ -8,7 +8,7 @@ process.on('message', function(message) {
 	var obj = JSON.parse(message);
 	if (obj.type === "connectToServer") {
 		id = parseInt(obj.id);
-		es = new EventSource(obj.uri);
+		es = new EventSource(obj.addr);
 		
 		es.onopen = function() {
 			process.send(JSON.stringify({"type": "connected"}));

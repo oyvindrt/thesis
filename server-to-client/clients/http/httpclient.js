@@ -1,47 +1,31 @@
 var http = require('http');
+var id;
+var messagesReceived = 0;
+var httpRequestOptions = { };
 
-//var Client = require('node-rest-client').Client;
-//var httpclient = new Client();
-
-var args = process.argv.slice(2);
-var id = args[2];
-
-var nextToReceive = 0;
-var finished = false;
-
-var httpAgent = new http.Agent();
-httpAgent.maxSockets = 1;
-
-var handleResponse = function(error, data) {
-    if (error) {
-        console.log(error);
-    } else {
-        var obj = JSON.parse(data);
-        var arr = obj.messages;
-        for (var i = 0; i < arr.length; i++) {
-			if (arr[i].type === "done") {
-				console.log("Broadcast is finished. " + id + " received a total of " + nextToReceive + " messages.");
-				finished = true;
-			}
-			nextToReceive++;
-		}
-		if (!finished) {
-			poll();
-		}
-    }
-};
+process.on('message', function(message) {
+	var obj = JSON.parse(message);
+	if (obj.type === "connectToServer") {
+		id = parseInt(obj.id);
+		
+		var httpAgent = new http.Agent();
+		httpAgent.maxSockets = 1;
+		
+		httpRequestOptions.host = obj.host;
+		httpRequestOptions.port = obj.port;
+		httpRequestOptions.agent = httpAgent;
+		
+		poll();
+		process.send(JSON.stringify({"type": "polling"}));
+	}
+});
 
 var poll = function() {
-	var options = {
-	    host: args[0],
-	    port: args[1],
-	    path: ('/poll?next=' + nextToReceive),
-	   	agent: httpAgent
-	};
+	httpRequestOptions.path = ('/poll?next=' + messagesReceived);
 
 	var data = "";
 
-	http.get(options, function(response) {
+	http.get(httpRequestOptions, function(response) {
 	    response.on('data', function(chunk) {
 	        data += chunk;
 	    });
@@ -56,27 +40,36 @@ var poll = function() {
 	});
 };
 
-poll();
-
-
-/*
-var poll = function() {
-	httpclient.get(("http://" + args[0] + "/poll?next=" + nextToReceive), function(data, response) {
-		var obj = JSON.parse(data);
-		var arr = obj.messages;
-		for (var i = 0; i < arr.length; i++) {
-			//console.log("Got: " + nextToReceive);
-			if (arr[i].type === "done") {
-				console.log("Broadcast is finished. " + id + " received a total of " + nextToReceive + " messages.");
-				finished = true;
+var handleResponse = function(error, data) {
+    if (error) {
+        console.log(error);
+    } else {
+        var obj = JSON.parse(data);
+		if (obj.messages) {
+			var arr = obj.messages;
+			var done = false;
+			for (var i = 0; i < arr.length; i++) {
+				if (arr[i].type === "broadcast") {
+					messagesReceived++;
+				} else if (arr[i].type === "done") {
+					done = true;
+					var allRecv = false;
+					var shouldHaveReceived = parseInt(arr[i].shouldHaveReceived);
+					if (messagesReceived === shouldHaveReceived) {
+						allRecv = true;
+					}
+					setTimeout(function() {
+						process.send(JSON.stringify({
+							"type": "done",
+							"gotAll": allRecv
+						}));
+					}, id*10);
+					break;
+				}
 			}
-			nextToReceive++;
+			if (!done) {
+				poll();
+			}
 		}
-		if (!finished) {
-			poll();
-		}
-	});
-}
-
-poll();
-*/
+    }
+};

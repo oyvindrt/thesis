@@ -1,24 +1,34 @@
-//var http = require('http');
 var express = require('express');
-var procmon = require('process-monitor');
 var WebSocket = require('ws');
 var readline = require('readline');
-var url = require('url');
 var cp = require('child_process');
 
-var MESSAGE_FREQUENCY = undefined;
-var NUMBER_OF_MESSAGES = undefined;
+var args = process.argv.slice(2);
 
-var messagesSent = 0;
-var startedBroadcast = false;
-var finished = false;
+var HOST = args[0];
+var PORT = args[1];
+
+var MESSAGE_FREQUENCY;
+var NUMBER_OF_MESSAGES;
+
+var STATE = {
+	NOT_STARTED: 0,
+	STARTED: 1,
+	FINISHED: 2
+};
+
+var clients = {
+	defers: [ ],
+	deferState: STATE.NOT_STARTED,
+	pingClientState: STATE.NOT_STARTED,
+	monitorClientState: STATE.NOT_STARTED
+};
 
 var messages = [ ];
-var defers = [ ];
 
-var backend = new WebSocket('ws://localhost:9000');
+var backend = new WebSocket('ws://' + HOST + ':' + PORT);
 var rl = readline.createInterface({ input: process.stdin, output: process.stdout});
-var monitor = undefined;
+var monitor;
 
 
 /* ---------------------------------------------------
@@ -38,54 +48,39 @@ backend.on('message', function(message) {
 
 	if (obj.type === "info") {
 		getInfoAndSendToBackend();
-	} else if (obj.type === "backendReady") {
+	}
+	else if (obj.type === "backendReady") {
 		console.log("Backend ready");
 		startMonitor();
 		rl.question("Press enter to start test", function() {
 			backend.send(JSON.stringify({"type": "go"}));
 		});
-	} else if (obj.type === "getReady") {
+	}
+	else if (obj.type === "getReady") {
 		var waittime = parseInt(obj.wait);
 		console.log("Starting in " + waittime + " ms...");
-	} else if (obj.type === "broadcast") {
-		
-		if (!startedBroadcast) {
+	}
+	else if (obj.type === "broadcast") {
+		if (clients.deferState === STATE.NOT_STARTED) {
+			clients.deferState = STATE.STARTED;
 			console.log("Starting broadcast!");
-			startedBroadcast = true;
 			monitor.send(JSON.stringify({"type": "broadcastStarting"}));
-		}
-		//broadcast(obj);
-		
-		/* OLD
-		if (!startedBroadcast) {
-			console.log("Starting broadcast!");
-			startedBroadcast = true;
+			clients.monitorClientState = STATE.STARTED;
 		}
 		messages.push(obj);
 		sendToAllDefers();
-		*/
-	} else if (obj.type === "done") {
-		
-		finished = true;
-		var reasonObj = JSON.stringify({
+	}
+	else if (obj.type === "done") {
+		var doneObj = {
 			"type": "done",
 			"shouldHaveReceived": NUMBER_OF_MESSAGES
-		});
-		for (var i = 0; i < clients.length; i++) {
-			clients[i].res.end("data: " + reasonObj + "\n\n");
-		}
-		monitor.send(JSON.stringify({"type": "broadcastEnded"}));
-		console.log("Connection to all clients closed. Benchmark finished.");
-		*/
+		};
 		
-		/* OLD
-		messages.push(obj);
+		messages.push(doneObj);
 		sendToAllDefers();
-		console.log("Broadcast from backend is over.");
-		finished = true;
-		*/
-		
-		console.log("ENDED");
+		clients.deferState = STATE.FINISHED;
+		monitor.send(JSON.stringify({"type": "broadcastEnded"}));
+		console.log("Broadcast is over");
 	}
 });
 
@@ -101,10 +96,21 @@ var getInfoAndSendToBackend = function() {
 					"num": NUMBER_OF_MESSAGES
 				}));
 			}
-		})
+		});
 	});
 };
 
+
+
+/* ---------------------------------------------------
+	SERVER
+--------------------------------------------------- */
+
+function Defer(req, res) {
+	this.req = req;
+	this.res = res;
+	this.next = parseInt(req.query.next);
+}
 
 var httpServer = express();
 
@@ -119,20 +125,40 @@ httpServer.get('/poll', function(req, res) {
 		}));
 	} else {
 		// DEFER
-		defers.push({"next": next, "res": res});
+		var defr = new Defer(req, res);
+		clients.defers.push(defr);
+	}
+});
+
+httpServer.get('/ping', function(req, res) {
+	if (clients.deferState === STATE.NOT_STARTED) {
+		res.end(JSON.stringify({"type": "pong", "status": "before", "time": req.param('time')}));
+	}
+	else if (clients.deferState === STATE.STARTED) {
+		res.end(JSON.stringify({"type": "pong", "status": "under", "time": req.param('time')}));
+	}
+	else if (clients.deferState === STATE.FINISHED) {
+		res.end(JSON.stringify({"type": "pong", "status": "done"}));
+		clients.pingClientState = STATE.FINISHED;
+		if (clients.deferState === STATE.FINISHED && clients.monitorClientState === STATE.FINISHED) {
+			process.exit(code=0);
+		}
 	}
 });
 
 httpServer.listen(8000);
 
 var sendToAllDefers = function() {
-	for (var i = 0; i < defers.length; i++) {
-		var newMessages = getAllMessagesFrom(defers[i].next);
-		defers[i].res.send(JSON.stringify({
+	for (var i = 0; i < clients.defers.length; i++) {
+		var newMessages = getAllMessagesFrom(clients.defers[i].next);
+		clients.defers[i].res.send(JSON.stringify({
 			"messages": newMessages
 		}));
 	}
-	defers = [ ];
+	clients.defers = [ ];
+	if (clients.pingClientState === STATE.FINISHED && clients.monitorClientState === STATE.FINISHED) {
+		process.exit(code=0);
+	}
 };
 
 var getAllMessagesFrom = function(next) {
@@ -163,8 +189,10 @@ var startMonitor = function() {
 			console.log("Average memory usage under broadcast: " + obj.under.memAvg.toFixed(2) + " bytes");
 			console.log("--------------------------------------------------------------------------------");
 			monitor.kill();
-			process.exit(code=0);
+			clients.monitorClientState = STATE.FINISHED;
+			if (clients.deferState === STATE.FINISHED && clients.pingClientState === STATE.FINISHED) {
+				process.exit(code=0);
+			}
 		}
 	});
 };
-

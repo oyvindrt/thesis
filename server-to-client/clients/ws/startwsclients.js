@@ -2,50 +2,58 @@ var cp = require('child_process');
 
 var args = process.argv.slice(2);
 
-var URI = "ws://" + args[0] + ':' + args[1];
-var NUMBER_OF_CLIENTS = parseInt(args[2]);
+var HOST = args[0];
+var PORT = args[1];
 
-var clients = [ ];
-var pingClient;
-var connectedClients = 0;
-var finishedClients = 0;
-var readyClients = 0;
+var STATE = {
+	NOT_FINISHED: 0,
+	FINISHED: 1
+};
 
-var numberOfClientsNotReceivedAllMessages = 0;
-var responseTimeAvg = { };
+var clients = {
+	count: parseInt(args[2]),
+	
+	testClients: [ ],
+	testClientsConnected: 0,
+	testClientsFinished: 0,
+	testClientsState: STATE.NOT_FINISHED,
+	testClientsNotReceivedAllMessages: 0,
+	
+	pingClientState: STATE.NOT_FINISHED
+};
 
-console.log("URI: " + URI);
-console.log("Number of clients: " + NUMBER_OF_CLIENTS);
+console.log("Server address: http://" + HOST + ':' + PORT + "/sse");
+console.log("Number of clients: " + clients.count);
 
 var createClients = function() {
-	for (var i = 0; i < NUMBER_OF_CLIENTS; i++) {
+	for (var i = 0; i < clients.count; i++) {
 		var client = cp.fork('./wsclient.js');
-		clients.push(client);
-		client.send(JSON.stringify({"type": "connectToServer", "uri": URI, "id": (i+1)}));
+		clients.testClients.push(client);
+		client.send(JSON.stringify({"type": "connectToServer", "addr": ("ws://" + HOST + ':' + PORT), "id": (i+1)}));
 		
 		client.on('message', function(message) {
 			var obj = JSON.parse(message);
 			
 			if (obj.type === 'connected') {
-				connectedClients++;
-				if (connectedClients === NUMBER_OF_CLIENTS) {
+				clients.testClientsConnected++;
+				if (clients.testClientsConnected === clients.count) {
 					console.log("All clients are connected to the server");
 				}
 			}
 			else if (obj.type === 'done') {
 				if (obj.gotAll === false) {
-					numberOfClientsNotReceivedAllMessages++;
+					clients.testClientsNotReceivedAllMessages++;
 					console.log("A client did not receive all messages from the server");
 				}
 				
-				finishedClients++;
+				clients.testClientsFinished++;
 				
-				if (finishedClients === NUMBER_OF_CLIENTS) {
-					if (numberOfClientsNotReceivedAllMessages === 0) {
+				if (clients.testClientsFinished === clients.count) {
+					if (clients.testClientsNotReceivedAllMessages === 0) {
 						console.log("All clients received all messages");
 					}
 					else {
-						console.log(numberOfClientsNotReceivedAllMessages + " clients did not receive all messages");
+						console.log(clients.testClientsNotReceivedAllMessages + " clients did not receive all messages");
 					}
 					killAllClientProcesses();
 				}
@@ -55,8 +63,8 @@ var createClients = function() {
 };
 
 var createPingClient = function() {
-	pingClient = cp.fork('./wspingclient.js');
-	pingClient.send(JSON.stringify({"type": "connectToServer", "uri": URI}));
+	var pingClient = cp.fork('./../ping/ws/wspingclient.js');
+	pingClient.send(JSON.stringify({"type": "connectToServer", "addr": ("ws://" + HOST + ':' + PORT)}));
 	
 	pingClient.on('message', function(message) {
 		var obj = JSON.parse(message);
@@ -65,31 +73,29 @@ var createPingClient = function() {
 			console.log("Ping client connected to server");
 		}
 		else if (obj.type === 'done') {
-			responseTimeAvg.before = obj.avgResp.before;
-			responseTimeAvg.under = obj.avgResp.under;
-			if (clients.length === 0) {
-				printTimeoutAvgAndEndProcess();
-			}
+			console.log("--------------------------------------------------------------------------------");
+			console.log("Average response time before broadcast: " + obj.avgResp.before.toFixed(2) + " ms");
+			console.log("--------------------------------------------------------------------------------");
+			console.log("Average response time under broadcast: " + obj.avgResp.under.toFixed(2) + " ms");
+			console.log("--------------------------------------------------------------------------------");
+			
 			pingClient.kill();
+			clients.pingClientState = STATE.FINISHED;
+			if (clients.testClientsState === STATE.FINISHED) {
+				process.exit(code=0);
+			}
 		}
 	});
 };
 
-var printTimeoutAvgAndEndProcess = function() {
-	console.log("--------------------------------------------------------------------------------");
-	console.log("Average response time before broadcast: " + responseTimeAvg.before.toFixed(2) + " ms");
-	console.log("--------------------------------------------------------------------------------");
-	console.log("Average response time under broadcast: " + responseTimeAvg.under.toFixed(2) + " ms");
-	console.log("--------------------------------------------------------------------------------");
-	process.exit(code=0);
-};
-
 var killAllClientProcesses = function() {
-	for (var i = 0; i < clients.length; i++) {
-		clients[i].kill();
+	for (var i = 0; i < clients.testClients.length; i++) {
+		clients.testClients[i].kill();
 	}
-	if (responseTimeAvg.before && responseTimeAvg.under) {
-		printTimeoutAvgAndEndProcess();
+	console.log("All clients killed");
+	clients.testClientsState = STATE.FINISHED;
+	if (clients.pingClientState === STATE.FINISHED) {
+		process.exit(code=0);
 	}
 };
 

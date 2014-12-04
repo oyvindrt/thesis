@@ -1,14 +1,14 @@
 {
-  "name": "httpclient",
+  "name": "wspingclient",
   "version": "1.0.0",
   "description": "",
-  "main": "httpclient.js",
+  "main": "wspingclients.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-  
+    "ws": "^0.4.32"
   }
 }
