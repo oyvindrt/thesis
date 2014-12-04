@@ -157,7 +157,10 @@ var sendToAllDefers = function() {
 	}
 	clients.defers = [ ];
 	if (clients.pingClientState === STATE.FINISHED && clients.monitorClientState === STATE.FINISHED) {
-		process.exit(code=0);
+		console.log("Exiting in 3 seconds...");
+		setTimeout(function() {
+			process.exit(code=0);
+		}, 3000);
 	}
 };
 
@@ -183,10 +186,10 @@ var startMonitor = function() {
 		if (obj.type === 'stats') {
 			console.log("--------------------------------------------------------------------------------");
 			console.log("Average CPU load before broadcast: " + obj.before.cpuAvg.toFixed(2) + " %");
-			console.log("Average memory usage before broadcast: " + obj.before.memAvg.toFixed(2) + " bytes");
+			console.log("Average memory usage before broadcast: " + obj.before.memAvg.toFixed(2) + " bytes (" + (obj.before.memAvg/1000).toFixed(2) + " MB)");
 			console.log("--------------------------------------------------------------------------------");
 			console.log("Average CPU load under broadcast: " + obj.under.cpuAvg.toFixed(2) + " %");
-			console.log("Average memory usage under broadcast: " + obj.under.memAvg.toFixed(2) + " bytes");
+			console.log("Average memory usage under broadcast: " + obj.under.memAvg.toFixed(2) + " bytes (" + (obj.under.memAvg/1000).toFixed(2) + " MB)");
 			console.log("--------------------------------------------------------------------------------");
 			monitor.kill();
 			clients.monitorClientState = STATE.FINISHED;
