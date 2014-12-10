@@ -22,7 +22,7 @@ var clients = {
 	pingClientState: STATE.NOT_FINISHED
 };
 
-console.log("Server address: http://" + HOST + ':' + PORT + "/sse");
+console.log("Server address: ws://" + HOST + ':' + PORT);
 console.log("Number of clients: " + clients.count);
 
 var createClients = function() {

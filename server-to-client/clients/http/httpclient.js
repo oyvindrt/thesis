@@ -55,14 +55,17 @@ var handleResponse = function(error, data) {
 					done = true;
 					var allRecv = false;
 					var shouldHaveReceived = parseInt(arr[i].shouldHaveReceived);
+					var exitCode = 0;
 					if (messagesReceived === shouldHaveReceived) {
 						allRecv = true;
+						exitCode = 1;
 					}
 					setTimeout(function() {
-						process.send(JSON.stringify({
+						process.exit(exitCode);
+						/*process.send(JSON.stringify({
 							"type": "done",
 							"gotAll": allRecv
-						}));
+						}));*/
 					}, id*10);
 					break;
 				}
