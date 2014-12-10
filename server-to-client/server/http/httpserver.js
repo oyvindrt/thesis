@@ -14,6 +14,7 @@ var NUMBER_OF_MESSAGES;
 var STATE = {
 	NOT_STARTED: 0,
 	STARTED: 1,
+	//CLOSING: 2,
 	FINISHED: 2
 };
 
@@ -117,14 +118,12 @@ var httpServer = express();
 httpServer.get('/poll', function(req, res) {
 	var next = parseInt(req.query.next) || 0;
 	res.contentType('application/json');
-	//res.set('Connection', 'Keep-Alive');
-	if ((messages.length-1) > next) {
+	if (messages.length <= next) {
 		var newMessages = getAllMessagesFrom(next);
 		res.send(JSON.stringify({
 			"messages": newMessages
 		}));
 	} else {
-		// DEFER
 		var defr = new Defer(req, res);
 		clients.defers.push(defr);
 	}
@@ -141,7 +140,7 @@ httpServer.get('/ping', function(req, res) {
 		res.end(JSON.stringify({"type": "pong", "status": "done"}));
 		clients.pingClientState = STATE.FINISHED;
 		if (clients.deferState === STATE.FINISHED && clients.monitorClientState === STATE.FINISHED) {
-			process.exit(code=0);
+			exitIfNoMoreDefers();
 		}
 	}
 });
@@ -149,6 +148,15 @@ httpServer.get('/ping', function(req, res) {
 httpServer.listen(8000);
 
 var sendToAllDefers = function() {
+	/*var defs = clients.defers;
+	clients.defers = [ ];
+	for (var i = 0; i < defs.length; i++) {
+		var newMessages = getAllMessagesFrom(defs[i].next);
+		defs[i].res.send(JSON.stringify({
+			"messages": newMessages
+		}));
+	}*/
+	
 	for (var i = 0; i < clients.defers.length; i++) {
 		var newMessages = getAllMessagesFrom(clients.defers[i].next);
 		clients.defers[i].res.send(JSON.stringify({
@@ -156,11 +164,9 @@ var sendToAllDefers = function() {
 		}));
 	}
 	clients.defers = [ ];
+	
 	if (clients.pingClientState === STATE.FINISHED && clients.monitorClientState === STATE.FINISHED) {
-		console.log("Exiting in 3 seconds...");
-		setTimeout(function() {
-			process.exit(code=0);
-		}, 3000);
+		exitIfNoMoreDefers();
 	}
 };
 
@@ -170,6 +176,16 @@ var getAllMessagesFrom = function(next) {
 		msgArr.push(messages[i]);
 	}
 	return msgArr;
+};
+
+var exitIfNoMoreDefers = function() {
+	setTimeout(function() {
+		if (clients.defers.length > 0) {
+			sendToAllDefers();
+		} else {
+			process.exit(0);
+		}
+	}, 3000);
 };
 
 
@@ -194,7 +210,7 @@ var startMonitor = function() {
 			monitor.kill();
 			clients.monitorClientState = STATE.FINISHED;
 			if (clients.deferState === STATE.FINISHED && clients.pingClientState === STATE.FINISHED) {
-				process.exit(code=0);
+				exitIfNoMoreDefers();
 			}
 		}
 	});
