@@ -78,7 +78,7 @@ backend.on('message', function(message) {
 		monitor.send(JSON.stringify({"type": "broadcastEnded"}));
 		console.log("Connection to all clients closed. Broadcast is over.");
 		if (clients.monitorClientState === STATE.FINISHED) {
-			process.exit(code=0);
+			process.exit(0);
 		}
 		
 	}
@@ -150,7 +150,7 @@ var startMonitor = function() {
 			monitor.kill();
 			clients.monitorClientState = STATE.FINISHED;
 			if (clients.clientsState === STATE.FINISHED) {
-				process.exit(code=0);
+				process.exit(0);
 			}
 		}
 	});

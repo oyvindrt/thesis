@@ -14,7 +14,6 @@ var NUMBER_OF_MESSAGES;
 var STATE = {
 	NOT_STARTED: 0,
 	STARTED: 1,
-	//CLOSING: 2,
 	FINISHED: 2
 };
 
@@ -116,9 +115,18 @@ function Defer(req, res) {
 var httpServer = express();
 
 httpServer.get('/poll', function(req, res) {
-	var next = parseInt(req.query.next) || 0;
+	var nextIndexToSend = parseInt(req.query.next) || 0;
 	res.contentType('application/json');
-	if (messages.length <= next) {
+	if (nextIndexToSend >= messages.length) {
+		var defr = new Defer(req, res);
+		clients.defers.push(defr);
+	} else {
+		var newMessages = getAllMessagesFrom(nextIndexToSend);
+		res.send(JSON.stringify({
+			"messages": newMessages
+		}));
+	}
+	/*if ((messages.length - 1) <= nextIndexToSend) {
 		var newMessages = getAllMessagesFrom(next);
 		res.send(JSON.stringify({
 			"messages": newMessages
@@ -126,7 +134,7 @@ httpServer.get('/poll', function(req, res) {
 	} else {
 		var defr = new Defer(req, res);
 		clients.defers.push(defr);
-	}
+	}*/
 });
 
 httpServer.get('/ping', function(req, res) {

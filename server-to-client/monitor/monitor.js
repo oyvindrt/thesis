@@ -7,13 +7,13 @@ var cpuLoad = {
 	before: [],
 	under: [],
 	after: []
-}
+};
 
 var memLoad = {
 	before: [],
 	under: [],
 	after: []
-}
+};
 
 process.on('message', function(m) {
 	var obj = JSON.parse(m);
