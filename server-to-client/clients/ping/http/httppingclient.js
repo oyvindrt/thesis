@@ -1,8 +1,9 @@
 var http = require('http');
 
-var broadcastStarted = false;
 var broadcastEnded = false;
-var interval;
+
+var serverAddr;
+var serverPort;
 
 var responseTime = {
 	before: [ ],
@@ -14,14 +15,16 @@ http.globalAgent.maxSockets = 1;
 process.on('message', function(message) {
 	var obj = JSON.parse(message);
 	if (obj.type === "startPingProgram") {
-		initiatePingProgram(obj.host, parseInt(obj.port));
+		serverAddr = obj.host;
+		serverPort = parseInt(obj.port);
+		setTimeoutForNewPing();
 		process.send(JSON.stringify({"type": "pingProgramStarted"}));
 	}
 });
 
-var initiatePingProgram = function(host, port) {
-	interval = setInterval(function() {
-		sendPing(host, port);
+var setTimeoutForNewPing = function() {
+	setTimeout(function() {
+		sendPing(serverAddr, serverPort);
 	}, 50);
 };
 
@@ -58,13 +61,19 @@ var handleResponse = function(e, data) {
 			if (obj.status === "before") {
 				var diff = Date.now() - parseInt(obj.time);
 				responseTime.before.push(diff);
+				if (!broadcastEnded) {
+					setTimeoutForNewPing();
+				}
 			}
 			else if (obj.status === "under") {
 				var diff = Date.now() - parseInt(obj.time);
 				responseTime.under.push(diff);
+				if (!broadcastEnded) {
+					setTimeoutForNewPing();
+				}
 			}
 			else if (obj.status === "done") {
-				clearInterval(interval);
+				broadcastEnded = true;
 				var avgs = calculateAvgResponseTime();
 				process.send(JSON.stringify({
 					"type": "done",
