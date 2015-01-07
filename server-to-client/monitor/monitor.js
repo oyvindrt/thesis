@@ -37,8 +37,13 @@ function setupMonitor() {
 			memLoad.before.push(parseInt(stats.mem));
 		} else if (started && !ended) {
 			cpuLoad.under.push(parseInt(stats.cpu));
-			memLoad.under.push(parseInt(stats.mem));
+			
+			// Average is wrong, as V8 keeps the arrived messages in memeory for some time.
+			//memLoad.under.push(parseInt(stats.mem));
 		} else if (ended) {
+			// Only record memory footprint at end?
+			memLoad.under.push(parseInt(stats.mem));
+			
 			var objToSend = { "type": "stats", "before": {}, "under": {} };
 		
 			var cpuAvg = 0;
@@ -60,6 +65,9 @@ function setupMonitor() {
 		
 			for (var i = 0; i < cpuLoad.under.length; i++) {
 				cpuAvg += cpuLoad.under[i];
+			}
+			
+			for (var i = 0; i < memLoad.under.length; i++) {
 				memAvg += memLoad.under[i];
 			}
 		
