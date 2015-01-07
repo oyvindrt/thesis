@@ -62,10 +62,6 @@ var handleResponse = function(error, data) {
 					}
 					setTimeout(function() {
 						process.exit(exitCode);
-						/*process.send(JSON.stringify({
-							"type": "done",
-							"gotAll": allRecv
-						}));*/
 					}, id*10);
 					break;
 				}

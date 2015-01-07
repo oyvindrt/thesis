@@ -70,6 +70,7 @@ function setupMonitor() {
 			objToSend.under.memAvg = memAvg;
 		
 			process.send(JSON.stringify(objToSend));
+			monitor.stop();
 		}
 	});
 }

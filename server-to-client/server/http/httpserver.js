@@ -126,15 +126,6 @@ httpServer.get('/poll', function(req, res) {
 			"messages": newMessages
 		}));
 	}
-	/*if ((messages.length - 1) <= nextIndexToSend) {
-		var newMessages = getAllMessagesFrom(next);
-		res.send(JSON.stringify({
-			"messages": newMessages
-		}));
-	} else {
-		var defr = new Defer(req, res);
-		clients.defers.push(defr);
-	}*/
 });
 
 httpServer.get('/ping', function(req, res) {
@@ -156,14 +147,6 @@ httpServer.get('/ping', function(req, res) {
 httpServer.listen(8000);
 
 var sendToAllDefers = function() {
-	/*var defs = clients.defers;
-	clients.defers = [ ];
-	for (var i = 0; i < defs.length; i++) {
-		var newMessages = getAllMessagesFrom(defs[i].next);
-		defs[i].res.send(JSON.stringify({
-			"messages": newMessages
-		}));
-	}*/
 	
 	for (var i = 0; i < clients.defers.length; i++) {
 		var newMessages = getAllMessagesFrom(clients.defers[i].next);
@@ -206,6 +189,7 @@ var startMonitor = function() {
 	monitor.send(JSON.stringify({"type": "startMonitor", "pid": process.pid}));
 
 	monitor.on('message', function(message) {
+		console.log("Melding fra monitor");
 		var obj = JSON.parse(message);
 		if (obj.type === 'stats') {
 			console.log("--------------------------------------------------------------------------------");
