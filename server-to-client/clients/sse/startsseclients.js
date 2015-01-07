@@ -80,7 +80,7 @@ var createPingClient = function() {
 			pingClient.kill();
 			clients.pingClientState = STATE.FINISHED;
 			if (clients.testClientsState === STATE.FINISHED) {
-				process.exit(code=0);
+				process.exit(0);
 			}
 		}
 	});
@@ -93,7 +93,7 @@ var killAllClientProcesses = function() {
 	console.log("All clients killed");
 	clients.testClientsState = STATE.FINISHED;
 	if (clients.pingClientState === STATE.FINISHED) {
-		process.exit(code=0);
+		process.exit(0);
 	}
 };
 

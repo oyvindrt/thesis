@@ -80,7 +80,7 @@ backend.on('message', function(message) {
 		monitor.send(JSON.stringify({"type": "broadcastEnded"}));
 		console.log("Connection to all clients closed. Broadcast is over.");
 		if (clients.pingClientState === STATE.FINISHED && clients.monitorClientState === STATE.FINISHED) {
-			process.exit(code=0);
+			process.exit(0);
 		}
 	}
 });
@@ -145,7 +145,7 @@ httpServer.get('/ping', function(req, res) {
 		res.end(JSON.stringify({"type": "pong", "status": "done"}));
 		clients.pingClientState = STATE.FINISHED;
 		if (clients.clientsState === STATE.FINISHED && clients.monitorClientState === STATE.FINISHED) {
-			process.exit(code=0);
+			process.exit(0);
 		}
 	}
 });
@@ -180,7 +180,7 @@ var startMonitor = function() {
 			monitor.kill();
 			clients.monitorClientState = STATE.FINISHED;
 			if (clients.clientsState === STATE.FINISHED && clients.pingClientState === STATE.FINISHED) {
-				process.exit(code=0);
+				process.exit(0);
 			}
 		}
 	});

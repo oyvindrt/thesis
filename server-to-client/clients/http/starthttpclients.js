@@ -40,24 +40,6 @@ var createClients = function() {
 					console.log("All clients are polling the server for updates");
 				}
 			}
-			/*else if (obj.type === 'done') {
-				if (obj.gotAll === false) {
-					clients.testClientsNotReceivedAllMessages++;
-					console.log("A client did not receive all messages from the server");
-				}
-
-				clients.testClientsFinished++;
-
-				if (clients.testClientsFinished === clients.count) {
-					if (clients.testClientsNotReceivedAllMessages === 0) {
-						console.log("All clients received all messages");
-					}
-					else {
-						console.log(clients.testClientsNotReceivedAllMessages + " clients did not receive all messages");
-					}
-					killAllClientProcesses();
-				}
-			}*/
 		});
 		
 		client.on('exit', function(code) {
@@ -78,7 +60,7 @@ var createClients = function() {
 				console.log("All clients killed");
 				clients.testClientsState = STATE.FINISHED;
 				if (clients.pingClientState === STATE.FINISHED) {
-					process.exit(code=0);
+					process.exit(0);
 				}
 			}
 		});
@@ -105,7 +87,7 @@ var createPingClient = function() {
 			pingClient.kill();
 			clients.pingClientState = STATE.FINISHED;
 			if (clients.testClientsState === STATE.FINISHED) {
-				process.exit(code=0);
+				process.exit(0);
 			}
 		}
 	});
@@ -118,7 +100,7 @@ var killAllClientProcesses = function() {
 	console.log("All clients killed");
 	clients.testClientsState = STATE.FINISHED;
 	if (clients.pingClientState === STATE.FINISHED) {
-		process.exit(code=0);
+		process.exit(0);
 	}
 };
 
