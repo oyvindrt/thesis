@@ -10,11 +10,32 @@ var NUMBER_OF_MESSAGES = undefined;
 
 var interval;
 
+// Payload is 140 characters long
 var TYPICAL_MESSAGE = JSON.stringify({
 	"type": 	"broadcast",
 	"payload": 	"This is a tweet. This is a tweet. This is a tweet. This is a tweet. This is a tweet. " +
 				"This is a tweet. This is a tweet. This is a tweet......"
 });
+
+
+/* //Over 1kb:
+var TYPICAL_MESSAGE = JSON.stringify({
+	"type": 	"broadcast",
+	"payload": 	"This is a tweet. This is a tweet. This is a tweet. This is a tweet. This is a tweet. " +
+				"This is a tweet. This is a tweet. This is a tweet. This is a tweet. This is a tweet. " +
+				"This is a tweet. This is a tweet. This is a tweet. This is a tweet. This is a tweet. " +
+				"This is a tweet. This is a tweet. This is a tweet. This is a tweet. This is a tweet. " +
+				"This is a tweet. This is a tweet. This is a tweet. This is a tweet. This is a tweet. " +
+				"This is a tweet. This is a tweet. This is a tweet. This is a tweet. This is a tweet. " +
+				"This is a tweet. This is a tweet. This is a tweet. This is a tweet. This is a tweet. " +
+				"This is a tweet. This is a tweet. This is a tweet. This is a tweet. This is a tweet. " +
+				"This is a tweet. This is a tweet. This is a tweet. This is a tweet. This is a tweet. " +
+				"This is a tweet. This is a tweet. This is a tweet. This is a tweet. This is a tweet. " +
+				"This is a tweet. This is a tweet. This is a tweet. This is a tweet. This is a tweet. " +
+				"This is a tweet. This is a tweet. This is a tweet. This is a tweet. This is a tweet. " +
+				"This is a tweet. This is a tweet. This is a tweet......"
+});
+*/
 
 console.log("Size: " + TYPICAL_MESSAGE.length);
 

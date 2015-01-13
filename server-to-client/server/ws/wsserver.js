@@ -141,12 +141,11 @@ var startMonitor = function() {
 		var obj = JSON.parse(message);
 		if (obj.type === 'stats') {
 			console.log("---CPU--------------------------------------------------------------------------");
-			console.log("Average idle CPU load before broadcast: " + obj.cpuBefore.toFixed(2) + " %");
-			console.log("Average CPU load under broadcast: " + obj.cpuUnder.toFixed(2) + " %");
+			console.log("Idle CPU load before broadcast: " + obj.cpuBefore.toFixed(2) + " %");
+			console.log("CPU load under broadcast: " + obj.cpuUnder.toFixed(2) + " %");
 			console.log("---MEM--------------------------------------------------------------------------");
-			console.log("Average idle memory usage before broadcast: " + obj.memBefore.toFixed(2) + " KB (" + (obj.memBefore/1000).toFixed(2) + " MB)");
-			console.log("Memory after broadcast: " + obj.memAfter.toFixed(2) + " KB (" + (obj.memAfter/1000).toFixed(2) + " MB)");
-			console.log("Delta: " + (obj.memAfter - obj.memBefore).toFixed(2) + " KB (" + (obj.memAfter/1000 - obj.memBefore/1000).toFixed(2) + " MB)");
+			console.log("Idle memory footprint before broadcast: " + obj.memBefore.toFixed(2) + " KB (" + (obj.memBefore/1000).toFixed(2) + " MB)");
+			console.log("Memory footprint after broadcast: " + obj.memAfter.toFixed(2) + " KB (" + (obj.memAfter/1000).toFixed(2) + " MB)");
 			console.log("--------------------------------------------------------------------------------");
 			monitor.kill();
 			clients.monitorClientState = STATE.FINISHED;
