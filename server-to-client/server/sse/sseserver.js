@@ -170,12 +170,13 @@ var startMonitor = function() {
 	monitor.on('message', function(message) {
 		var obj = JSON.parse(message);
 		if (obj.type === 'stats') {
-			console.log("--------------------------------------------------------------------------------");
-			console.log("Average CPU load before broadcast: " + obj.before.cpuAvg.toFixed(2) + " %");
-			console.log("Average memory usage before broadcast: " + obj.before.memAvg.toFixed(2) + " KB (" + (obj.before.memAvg/1000).toFixed(2) + " MB)");
-			console.log("--------------------------------------------------------------------------------");
-			console.log("Average CPU load under broadcast: " + obj.under.cpuAvg.toFixed(2) + " %");
-			console.log("Average memory usage under broadcast: " + obj.under.memAvg.toFixed(2) + " KB (" + (obj.under.memAvg/1000).toFixed(2) + " MB)");
+			console.log("---CPU--------------------------------------------------------------------------");
+			console.log("Average idle CPU load before broadcast: " + obj.cpuBefore.toFixed(2) + " %");
+			console.log("Average CPU load under broadcast: " + obj.cpuUnder.toFixed(2) + " %");
+			console.log("---MEM--------------------------------------------------------------------------");
+			console.log("Average idle memory usage before broadcast: " + obj.memBefore.toFixed(2) + " KB (" + (obj.memBefore/1000).toFixed(2) + " MB)");
+			console.log("Memory after broadcast: " + obj.memAfter.toFixed(2) + " KB (" + (obj.memAfter/1000).toFixed(2) + " MB)");
+			console.log("Delta: " + (obj.memAfter - obj.memBefore).toFixed(2) + " KB (" + (obj.memAfter/1000 - obj.memBefore/1000).toFixed(2) + " MB)");
 			console.log("--------------------------------------------------------------------------------");
 			monitor.kill();
 			clients.monitorClientState = STATE.FINISHED;
