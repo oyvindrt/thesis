@@ -197,6 +197,7 @@ var startMonitor = function() {
 			console.log("---MEM--------------------------------------------------------------------------");
 			console.log("Idle memory footprint before broadcast: " + obj.memBefore.toFixed(2) + " KB (" + (obj.memBefore/1000).toFixed(2) + " MB)");
 			console.log("Memory footprint after broadcast: " + obj.memAfter.toFixed(2) + " KB (" + (obj.memAfter/1000).toFixed(2) + " MB)");
+			console.log("--------------------------------------------------------------------------------");
 			monitor.kill();
 			clients.monitorClientState = STATE.FINISHED;
 			if (clients.deferState === STATE.FINISHED && clients.pingClientState === STATE.FINISHED) {
