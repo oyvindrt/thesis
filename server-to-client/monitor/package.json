@@ -9,6 +9,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "process-monitor": "^0.3.0"
+    "process-monitor": "0.3.0"
   }
 }

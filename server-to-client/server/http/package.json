@@ -9,8 +9,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "express": "^4.9.8",
-    "process-monitor": "^0.3.0",
-    "ws": "^0.4.32"
+    "express": "4.9.8",
+    "process-monitor": "0.3.0",
+    "ws": "0.4.32"
   }
 }
