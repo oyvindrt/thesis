@@ -38,38 +38,38 @@ function setupMonitor() {
 		} else if (ended) {
 			// Only record memory footprint at end
 			memLoad.after.push(parseInt(stats.mem));
-			
+
 			var objToSend = { "type": "stats"};
-			
+
 			// IDLE CPU AND MEMORY
 			var cpuAvg = 0;
 			var memAvg = 0;
-			
+
 			for (var i = 0; i < cpuLoad.before.length; i++) {
 				cpuAvg += cpuLoad.before[i];
 				memAvg += memLoad.before[i];
 			}
-			
+
 			cpuAvg = cpuAvg / cpuLoad.before.length;
 			memAvg = memAvg / memLoad.before.length;
-			
+
 			objToSend.cpuBefore = cpuAvg;
 			objToSend.memBefore = memAvg;
-			
+
 			// CPU UNDER LOAD
 			cpuAvg = 0;
-			
+
 			for (var i = 0; i < cpuLoad.under.length; i++) {
 				cpuAvg += cpuLoad.under[i];
 			}
-			
+
 			cpuAvg = cpuAvg / cpuLoad.under.length;
-			
+
 			objToSend.cpuUnder = cpuAvg;
-			
+
 			// MEMORY FOOTPRINT AFTER
 			objToSend.memAfter = parseInt(stats.mem);
-		
+
 			process.send(JSON.stringify(objToSend));
 			monitor.stop();
 		}
