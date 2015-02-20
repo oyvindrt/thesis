@@ -23,6 +23,8 @@ var clients = {
 
 var monitorState = STATE.NOT_STARTED;
 
+var timeup = false;
+
 var wss = new WebSocketServer({port: 8000}, function() {
 	console.log("Server started and listening for clients on port 8000");
 	setWsHandlers();
@@ -60,16 +62,25 @@ var setWsHandlers = function () {
 					wss.clients[0].send(JSON.stringify({"type":"chat"}));
 					console.log("Chat is live for " + (TEST_DURATION/1000) + " seconds...");
 				}
-				messageCount++;
-				broadcast(obj);	
+				if (!timeup) {
+					messageCount++;
+					broadcast(obj);	
+				}
 			}
 			else if (obj.type === 'timeup') {
-				if (clients.state !== STATE.FINISHED) {
+				if (!timeup) {
+					timeup = true;
 					monitor.send(JSON.stringify({"type":"done"}));
 					clients.state = STATE.FINISHED;
 					broadcast({"type": "done", "shouldHaveReceived": messageCount});
 					console.log("Server received timeup from clients");
 				}
+				/*if (clients.state !== STATE.FINISHED) {
+					monitor.send(JSON.stringify({"type":"done"}));
+					clients.state = STATE.FINISHED;
+					broadcast({"type": "done", "shouldHaveReceived": messageCount});
+					console.log("Server received timeup from clients");
+				}*/
 			}
 		});
 

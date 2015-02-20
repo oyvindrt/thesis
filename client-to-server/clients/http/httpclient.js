@@ -8,6 +8,8 @@ var interval;
 var serverAddr;
 var httpRequestOptions = { };
 
+var responseTimes = [ ];
+
 /* ---------------------------------------------------
 	MOTHER PROCESS
 --------------------------------------------------- */
@@ -82,6 +84,11 @@ var handleResponse = function(error, data) {
 			for (var i = 0; i < arr.length; i++) {
 				if (arr[i].type === "chat") {
 					messagesReceived++;
+					
+					var diff = Date.now() - parseInt(arr[i].sent);
+					//console.log(id + ": received my own message. Ping: " + diff);
+					responseTimes.push(diff);
+					
 				} else if (arr[i].type === "done") {
 					done = true;
 					var allRecv = false;
@@ -92,7 +99,8 @@ var handleResponse = function(error, data) {
 					setTimeout(function() {
 						process.send(JSON.stringify({
 							"type": "done",
-							"gotAll": allRecv
+							"gotAll": allRecv,
+							"ping": calculateAvgResponseTime()
 						}));
 					}, id*10);
 				}
@@ -110,18 +118,16 @@ var handleResponse = function(error, data) {
 --------------------------------------------------- */
 
 var sendChatMessage = function() {
-	/*
-	if (id === 1) {
-		console.log("Client number 1 sends a message");
-	} else if (id === 50) {
-		console.log("Client number 50 sends a message");
-	}
-	*/
 	var httpOptions = {
 		uri: (serverAddr + '/chat'),
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json', 'Connection': 'keep-alive'},
-		form: {"type": "chat", "payload": "Hello! How are you doing today?"}
+		form: {
+			"type": "chat",
+			"from": id,
+			"sent": Date.now(),
+			"payload": "Hello! How are you doing today?"
+		}
 	};
 	
 	request(httpOptions, function(error, response, body) {
@@ -148,4 +154,14 @@ var sendTimeupMessage = function() {
 			//console.log(error);
 		}
 	});
+};
+
+var calculateAvgResponseTime = function() {
+	var avg = 0;
+	for (var i = 0; i < responseTimes.length; i++) {
+		avg += responseTimes[i];
+	}
+	avg = avg / responseTimes.length;
+	//console.log("avg: " + avg);
+	return avg;
 };

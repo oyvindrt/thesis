@@ -25,6 +25,7 @@ var clients = {
 	testClientsFinished: 0,
 	testClientsState: STATE.NOT_FINISHED,
 	testClientsNotReceivedAllMessages: 0,
+	testClientsResponseTimes: [],
 	
 	pingClient: undefined,
 	pingClientState: STATE.NOT_FINISHED
@@ -107,6 +108,7 @@ var createClients = function() {
 				}
 			}
 			else if (obj.type === 'done') {
+				clients.testClientsResponseTimes.push(obj.ping);
 				if (obj.gotAll === false) {
 					clients.testClientsNotReceivedAllMessages++;
 					console.log("A client did not receive all messages from the server");
@@ -121,6 +123,7 @@ var createClients = function() {
 					else {
 						console.log(clients.testClientsNotReceivedAllMessages + " clients did not receive all messages");
 					}
+					calculateAndPrintAverageResponseTime();
 					killAllClientProcesses();
 				}
 			}
@@ -178,7 +181,7 @@ var createPingClient = function() {
 		}
 		else if (obj.type === 'done') {
 			console.log("--------------------------------------------------------------------------------");
-			console.log("Average response time under chat: " + obj.avgResponseTimeUnderChat.toFixed(2) + " ms");
+			console.log("Average response time under chat from ping client: " + obj.avgResponseTimeUnderChat.toFixed(2) + " ms");
 			console.log("--------------------------------------------------------------------------------");
 			
 			pingClient.kill();
@@ -213,6 +216,18 @@ var exit = function() {
 	sendFinishedMessageToServerAndExit();
 };
 
+var calculateAndPrintAverageResponseTime = function() {
+	var avg = 0;
+	for (var i = 0; i < clients.testClientsResponseTimes.length; i++) {
+		avg += clients.testClientsResponseTimes[i];
+	}
+	
+	avg = avg / clients.testClientsResponseTimes.length;
+	
+	console.log("--------------------------------------------------------------------------------");
+	console.log("Average response time under chat from all clients: " + avg.toFixed(2) + " ms");
+	console.log("--------------------------------------------------------------------------------");
+};
 
 // Entry point
 exhangeInfoWithServer();

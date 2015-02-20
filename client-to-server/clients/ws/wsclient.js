@@ -5,6 +5,8 @@ var id;
 var messagesReceived = 0;
 var interval;
 
+var responseTimes = [ ];
+
 
 /* ---------------------------------------------------
 	MOTHER PROCESS
@@ -26,6 +28,8 @@ process.on('message', function(message) {
 			interval = setInterval(function() {
 				ws.send(JSON.stringify({
 					"type": "chat",
+					"from": id,
+					"sent": Date.now(),
 					"payload": "Hello! How are you doing today?"
 				}));
 			}, timeBetweenEachMessage);
@@ -54,6 +58,11 @@ var setWsHandlers = function () {
 		var obj = JSON.parse(message);
 		if (obj.type === 'chat') {
 			messagesReceived++;
+			if (obj.from === id) {
+				var diff = Date.now() - parseInt(obj.sent);
+				//console.log(id + ": received my own message. Ping: " + diff);
+				responseTimes.push(diff);
+			}
 			//console.log("Mottatt melding: " + obj.payload);
 		}
 		else if (obj.type === "done") {
@@ -66,9 +75,20 @@ var setWsHandlers = function () {
 			setTimeout(function() {
 				process.send(JSON.stringify({
 					"type": "done",
-					"gotAll": allRecv
+					"gotAll": allRecv,
+					"ping": calculateAvgResponseTime()
 				}));
 			}, id*10);
 		}
 	});
+};
+
+var calculateAvgResponseTime = function() {
+	var avg = 0;
+	for (var i = 0; i < responseTimes.length; i++) {
+		avg += responseTimes[i];
+	}
+	avg = avg / responseTimes.length;
+	
+	return avg;
 };
