@@ -53,12 +53,13 @@ var setEsHandlers = function() {
 		var obj = JSON.parse(message.data);
 		if (obj.type === "chat") {
 			messagesReceived++;
-			
 			var diff = Date.now() - parseInt(obj.sent);
-			//console.log(id + ": received my own message. Ping: " + diff);
 			responseTimes.push(diff);
 			
-			//console.log("Mottatt melding: " + obj.payload);
+			//if (id === 1) {
+			//	console.log("My id is 1 and I just received a message. Ping is: " + diff);
+			//}
+			
 		} else if (obj.type === "done") {
 			var allRecv = false;
 			var shouldHaveReceived = parseInt(obj.shouldHaveReceived);

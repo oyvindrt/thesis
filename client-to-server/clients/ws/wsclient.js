@@ -16,7 +16,7 @@ process.on('message', function(message) {
 	var obj = JSON.parse(message);
 	if (obj.type === "connectToServer") {
 		id = parseInt(obj.id);
-		ws = new WebSocket(obj.addr, {protocol: "testClient"});
+		ws = new WebSocket(obj.addr);
 		setWsHandlers();
 	}
 	else if (obj.type === "go") {
@@ -58,12 +58,11 @@ var setWsHandlers = function () {
 		var obj = JSON.parse(message);
 		if (obj.type === 'chat') {
 			messagesReceived++;
-			if (obj.from === id) {
-				var diff = Date.now() - parseInt(obj.sent);
-				//console.log(id + ": received my own message. Ping: " + diff);
-				responseTimes.push(diff);
-			}
-			//console.log("Mottatt melding: " + obj.payload);
+			var diff = Date.now() - parseInt(obj.sent);
+			responseTimes.push(diff);
+			//if (id === 1) {
+			//	console.log("My id is 1 and I just received a message. Ping is: " + diff);
+			//}
 		}
 		else if (obj.type === "done") {
 			ws.close();

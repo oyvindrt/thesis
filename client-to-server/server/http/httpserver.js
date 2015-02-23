@@ -11,12 +11,11 @@ var TEST_DURATION = args[0] * 1000;
 
 var messageCount = 0;
 
-var connectionTimeout;
-
 var STATE = {
 	NOT_STARTED: 0,
 	STARTED: 1,
-	FINISHED: 2
+	SHUTTING_DOWN: 2,
+	FINISHED: 3
 };
 
 var clients = {
@@ -25,14 +24,12 @@ var clients = {
 	state: STATE.NOT_STARTED
 };
 
-var timeup = false;
-
 var messages = [ ];
 
+var monitor;
 var monitorState = STATE.NOT_STARTED;
 
 var rl = readline.createInterface({ input: process.stdin, output: process.stdout});
-var monitor;
 
 
 /* ---------------------------------------------------
@@ -65,6 +62,9 @@ httpServer.post('/info', function(req, res) {
 	}
 	else if (obj.type === 'finished') {
 		clients.state = STATE.FINISHED;
+		if (monitorState = STATE.FINISHED) {
+			process.exit();
+		}
 	}
 });
 
@@ -94,7 +94,7 @@ httpServer.post('/chat', function (req, res) {
 			monitorState = STATE.STARTED;
 			console.log("Chat is live for " + (TEST_DURATION/1000) + " seconds...");
 		}
-		if (!timeup) {
+		if (clients.state === STATE.STARTED) {
 			messageCount++;
 			messages.push(obj);
 			sendToAllDefers();
@@ -102,21 +102,16 @@ httpServer.post('/chat', function (req, res) {
 		res.json();
 	}
 	else if (obj.type === "timeup") {
-		if (!timeup) {
-			timeup = true;
+		if (clients.state !== STATE.SHUTTING_DOWN) {
+			clients.state = STATE.SHUTTING_DOWN;
 			monitor.send(JSON.stringify({"type":"done"}));
 			console.log("Server received timeup from clients");
 			messages.push({"type": "done", "shouldHaveReceived": messageCount});
-			periodicallySendToAllDefersAndEventuallyExit();
+			periodicallySendToAllDefers();
 		}
 		res.json();
 	}
 	
-});
-
-// PING/PONG
-httpServer.get('/ping', function(req, res) {
-	res.end(JSON.stringify({"type": "pong", "time": req.param('time')}));
 });
 
 httpServer.listen(8000, function() {
@@ -141,6 +136,15 @@ var sendToAllDefers = function() {
 	clients.defers = [ ];
 };
 
+var periodicallySendToAllDefers = function() {
+	setTimeout(function() {
+		if (clients.state !== STATE.FINISHED) {
+			sendToAllDefers();
+			periodicallySendToAllDefers();
+		}
+	}, 3000);
+}
+
 
 /* ---------------------------------------------------
 	MONITOR
@@ -155,7 +159,7 @@ var readyMonitor = function() {
 		if (obj.type === 'stats') {
 			// Time to close test client connections.
 			monitor.kill();
-			montorState = STATE.FINISHED;
+			monitorState = STATE.FINISHED;
 			console.log("Chat finished");
 			console.log("--------------------------------------------------------------------------------");
 			console.log("CPU load under chat: " + obj.cpuAvgUnderChat.toFixed(2) + " %");
@@ -165,20 +169,4 @@ var readyMonitor = function() {
 			}
 		}
 	});
-};
-
-
-/* ---------------------------------------------------
-	MISC
---------------------------------------------------- */
-
-var periodicallySendToAllDefersAndEventuallyExit = function() {
-	setTimeout(function() {
-		if (clients.state !== STATE.FINISHED) {
-			sendToAllDefers();
-			periodicallySendToAllDefersAndEventuallyExit();
-		} else {
-			process.exit(0);
-		}
-	}, 3000);
 };

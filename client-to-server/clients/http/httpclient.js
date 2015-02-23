@@ -22,7 +22,7 @@ process.on('message', function(message) {
 		
 		var httpAgent = new http.Agent();
 		
-		httpAgent.maxSockets = 1;		
+		httpAgent.maxSockets = 1;
 		httpRequestOptions.host = obj.host;
 		httpRequestOptions.port = obj.port;
 		httpRequestOptions.agent = httpAgent;
@@ -84,11 +84,8 @@ var handleResponse = function(error, data) {
 			for (var i = 0; i < arr.length; i++) {
 				if (arr[i].type === "chat") {
 					messagesReceived++;
-					
 					var diff = Date.now() - parseInt(arr[i].sent);
-					//console.log(id + ": received my own message. Ping: " + diff);
 					responseTimes.push(diff);
-					
 				} else if (arr[i].type === "done") {
 					done = true;
 					var allRecv = false;
@@ -162,6 +159,5 @@ var calculateAvgResponseTime = function() {
 		avg += responseTimes[i];
 	}
 	avg = avg / responseTimes.length;
-	//console.log("avg: " + avg);
 	return avg;
 };

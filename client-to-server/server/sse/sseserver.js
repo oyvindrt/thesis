@@ -11,12 +11,11 @@ var TEST_DURATION = args[0] * 1000;
 
 var messageCount = 0;
 
-var connectionTimeout;
-
 var STATE = {
 	NOT_STARTED: 0,
 	STARTED: 1,
-	FINISHED: 2
+	SHUTTING_DOWN: 2,
+	FINISHED: 3
 };
 
 var clients = {
@@ -25,10 +24,10 @@ var clients = {
 	state: STATE.NOT_STARTED
 };
 
+var monitor;
 var monitorState = STATE.NOT_STARTED;
 
 var rl = readline.createInterface({ input: process.stdin, output: process.stdout});
-var monitor;
 
 
 /* ---------------------------------------------------
@@ -57,6 +56,12 @@ httpServer.post('/info', function(req, res) {
 		console.log("Get ready! Chat phase starting in " + (obj.startingIn/1000) + " seconds...");
 		readyMonitor();
 		res.json();
+	}
+	else if (obj.type === 'finished') {
+		clients.state = STATE.FINISHED;
+		if (monitorState = STATE.FINISHED) {
+			process.exit();
+		}
 	}
 });
 
@@ -99,24 +104,20 @@ httpServer.post('/chat', function (req, res) {
 			monitorState = STATE.STARTED;
 			console.log("Chat is live for " + (TEST_DURATION/1000) + " seconds...");
 		}
-		messageCount++;
-		broadcast(obj);
+		if (clients.state === STATE.STARTED) {
+			messageCount++;
+			broadcast(obj);
+		}
 	}
 	else if (obj.type === "timeup") {
-		if (clients.state !== STATE.FINISHED) {
+		if (clients.state !== STATE.SHUTTING_DOWN) {
+			clients.state = STATE.SHUTTING_DOWN;
 			monitor.send(JSON.stringify({"type":"done"}));
-			clients.state = STATE.FINISHED;
-			broadcast({"type": "done", "shouldHaveReceived": messageCount});
 			console.log("Server received timeup from clients");
+			broadcast({"type": "done", "shouldHaveReceived": messageCount});
 		}
 	}
 	res.json();
-});
-
-// PINGS
-httpServer.get('/ping', function(req, res) {
-	//console.log("PING MESSAGE RECEIVED");
-	res.end(JSON.stringify({"type": "pong", "time": req.param('time')}));
 });
 
 httpServer.listen(8000, function() {
@@ -143,20 +144,14 @@ var readyMonitor = function() {
 		if (obj.type === 'stats') {
 			// Time to close test client connections.
 			monitor.kill();
-			montorState = STATE.FINISHED;
+			monitorState = STATE.FINISHED;
 			console.log("Chat finished");
 			console.log("--------------------------------------------------------------------------------");
 			console.log("CPU load under chat: " + obj.cpuAvgUnderChat.toFixed(2) + " %");
 			console.log("--------------------------------------------------------------------------------");
 			if (clients.state === STATE.FINISHED) {
-				exitInThreeSeconds();
+				process.exit(0);
 			}
 		}
 	});
-};
-
-var exitInThreeSeconds = function() {
-	setTimeout(function() {
-		process.exit(0);
-	}, 3000);
 };
