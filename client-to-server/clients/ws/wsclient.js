@@ -85,6 +85,11 @@ var setWsHandlers = function () {
 	});
 };
 
+
+/* ---------------------------------------------------
+	RESPONSE TIME CALCULATION
+--------------------------------------------------- */
+
 var calculateAvgResponseTime = function() {
 	var avg = 0;
 	for (var i = 0; i < responseTimes.length; i++) {

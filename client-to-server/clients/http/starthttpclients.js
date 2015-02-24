@@ -14,7 +14,7 @@ var server;
 
 var clients = {
 	count: parseInt(args[1]),
-	
+
 	clients: [ ],
 	clientsStarted: 0,
 	clientsFinished: 0,
@@ -40,7 +40,7 @@ var exhangeInfoWithServer = function() {
 		headers: { 'Content-Type': 'application/json', 'Connection': 'close'},
 		form: {"type": "info", "numberOfClients": clients.count}
 	};
-	
+
 	request(httpOptions, function(error, response, body) {
 		if (!error && response.statusCode === 200) {
 			var obj = JSON.parse(body);
@@ -57,7 +57,7 @@ var sendGetReadyToServer = function() {
 		headers: { 'Content-Type': 'application/json', 'Connection': 'close'},
 		form: {"type": "getReady", "startingIn": WAIT_TIME_BEFORE_CHAT}
 	};
-	
+
 	request(httpOptions, function(error, response, body) {
 		if (!error && response.statusCode === 200) {
 			// Success
@@ -72,7 +72,7 @@ var sendFinishedMessageToServerAndExit = function() {
 		headers: { 'Content-Type': 'application/json', 'Connection': 'close'},
 		form: {"type": "finished"}
 	};
-	
+
 	request(httpOptions, function(error, response, body) {
 		if (!error && response.statusCode === 200) {
 			// Finished message sent to the server. It's now safe to shut down.
@@ -91,10 +91,10 @@ var createClients = function() {
 		var client = cp.fork('./httpclient.js');
 		clients.clients.push(client);
 		client.send(JSON.stringify({"type": "startPoll", "host": HOST, "port": 8000, "id": (i+1)}));
-		
+
 		client.on('message', function(message) {
 			var obj = JSON.parse(message);
-			
+
 			if (obj.type === 'pollingStarted') {
 				clients.clientsStarted++;
 				if (clients.clientsStarted === clients.count) {
@@ -109,9 +109,9 @@ var createClients = function() {
 					clients.clientsNotReceivedAllMessages++;
 					console.log("A client did not receive all messages from the server");
 				}
-				
+
 				clients.clientsFinished++;
-				
+
 				if (clients.clientsFinished === clients.count) {
 					if (clients.clientsNotReceivedAllMessages === 0) {
 						console.log("All clients received all messages");
@@ -128,13 +128,13 @@ var createClients = function() {
 };
 
 var initiateChatPhase = function() {
-	
+
 	sendGetReadyToServer();
-	
+
 	var timeBeforeClientStartsChatting = TIME_BETWEEN_EACH_MESSAGE / clients.count;
-	
+
 	startTimer();
-	
+
 	setTimeout(function() {
 		for (var i = 0; i < clients.clients.length; i++) {
 			clients.clients[i].send(JSON.stringify({
@@ -145,6 +145,7 @@ var initiateChatPhase = function() {
 		}
 	}, WAIT_TIME_BEFORE_CHAT);
 };
+
 
 /* ---------------------------------------------------
 	MISC
@@ -165,22 +166,22 @@ var informChildrenOfTimeup = function() {
 var calculateAndPrintResponseTime = function() {
 	var avg = 0;
 	var median;
-	
+
 	for (var i = 0; i < clients.clientResponseTimes.avg.length; i++) {
 		avg += clients.clientResponseTimes.avg[i];
 	}
 	avg = avg / clients.clientResponseTimes.avg.length;
-	
+
 	clients.clientResponseTimes.median.sort(function(a, b){
 		return a - b;
 	});
-	
+
 	if (clients.clientResponseTimes.median.length % 2 === 0) {
 		median = ((clients.clientResponseTimes.median[clients.clientResponseTimes.median.length/2] + clients.clientResponseTimes.median[(clients.clientResponseTimes.median.length/2)-1])/2);
 	} else {
 		median = clients.clientResponseTimes.median[(clients.clientResponseTimes.median.length+1) / 2];
 	}
-	
+
 	console.log("--------------------------------------------------------------------------------");
 	console.log("Average response time of all client average response times: " + avg.toFixed(2) + " ms");
 	console.log("--------------------------------------------------------------------------------");
