@@ -34,7 +34,7 @@ console.log("Number of clients: " + clients.count);
 --------------------------------------------------- */
 
 var connectToServer = function() {
-	server = new WebSocket("ws://" + HOST + ":8000", {protocol: "masterClient"});
+	server = new WebSocket("ws://" + HOST + ":8000");
 	server.on('open', function() {
 		server.send(JSON.stringify({
 			"type": "info",
