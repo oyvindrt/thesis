@@ -60,7 +60,7 @@ httpServer.post('/info', function(req, res) {
 	else if (obj.type === 'finished') {
 		clients.state = STATE.FINISHED;
 		if (monitorState = STATE.FINISHED) {
-			process.exit();
+			process.exit(0);
 		}
 	}
 });
@@ -84,9 +84,6 @@ httpServer.get('/sse', function(req, res) {
 				clients.connections.splice(i, 1);
 				if (clients.connections.length === 0) {
 					console.log("All connected clients disconnected");
-					if (monitorState === STATE.FINISHED) {
-						exitInThreeSeconds();
-					}
 				}
 			}
 		}

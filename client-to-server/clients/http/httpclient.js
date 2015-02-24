@@ -97,7 +97,10 @@ var handleResponse = function(error, data) {
 						process.send(JSON.stringify({
 							"type": "done",
 							"gotAll": allRecv,
-							"ping": calculateAvgResponseTime()
+							"ping": {
+								"avg": calculateAvgResponseTime(),
+								"median": calculateMedianResponseTime()
+							}
 						}));
 					}, id*10);
 				}
@@ -160,4 +163,17 @@ var calculateAvgResponseTime = function() {
 	}
 	avg = avg / responseTimes.length;
 	return avg;
+};
+
+var calculateMedianResponseTime = function() {
+	var median;
+	responseTimes.sort(function(a, b){
+		return a - b;
+	});
+	if (responseTimes.length % 2 === 0) {
+		median = ((responseTimes[responseTimes.length/2] + responseTimes[(responseTimes.length/2)-1])/2);
+	} else {
+		median = responseTimes[(responseTimes.length+1) / 2];
+	}
+	return median;
 };

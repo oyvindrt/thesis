@@ -19,7 +19,10 @@ var clients = {
 	clientsConnected: 0,
 	clientsFinished: 0,
 	clientsNotReceivedAllMessages: 0,
-	clientResponseTimes: [],
+	clientResponseTimes: {
+		avg: [],
+		median: []
+	}
 };
 
 console.log("Server address: ws://" + HOST + ':8000');
@@ -72,7 +75,8 @@ var createClients = function() {
 				}
 			}
 			else if (obj.type === 'done') {
-				clients.clientResponseTimes.push(obj.ping);
+				clients.clientResponseTimes.avg.push(obj.ping.avg);
+				clients.clientResponseTimes.median.push(obj.ping.median);
 				if (obj.gotAll === false) {
 					clients.clientsNotReceivedAllMessages++;
 					console.log("A client did not receive all messages from the server");
@@ -87,7 +91,7 @@ var createClients = function() {
 					else {
 						console.log(clients.clientsNotReceivedAllMessages + " clients did not receive all messages");
 					}
-					calculateAndPrintAverageResponseTime();
+					calculateAndPrintResponseTime();
 					killAllClientProcesses();
 				}
 			}
@@ -138,16 +142,29 @@ var informChildrenOfTimeup = function() {
 	}
 };
 
-var calculateAndPrintAverageResponseTime = function() {
+var calculateAndPrintResponseTime = function() {
 	var avg = 0;
-	for (var i = 0; i < clients.clientResponseTimes.length; i++) {
-		avg += clients.clientResponseTimes[i];
+	var median;
+	
+	for (var i = 0; i < clients.clientResponseTimes.avg.length; i++) {
+		avg += clients.clientResponseTimes.avg[i];
+	}
+	avg = avg / clients.clientResponseTimes.avg.length;
+	
+	clients.clientResponseTimes.median.sort(function(a, b){
+		return a - b;
+	});
+	
+	if (clients.clientResponseTimes.median.length % 2 === 0) {
+		median = ((clients.clientResponseTimes.median[clients.clientResponseTimes.median.length/2] + clients.clientResponseTimes.median[(clients.clientResponseTimes.median.length/2)-1])/2);
+	} else {
+		median = clients.clientResponseTimes.median[(clients.clientResponseTimes.median.length+1) / 2];
 	}
 	
-	avg = avg / clients.clientResponseTimes.length;
-	
 	console.log("--------------------------------------------------------------------------------");
-	console.log("Average response time under chat from all clients: " + avg.toFixed(2) + " ms");
+	console.log("Average response time of all client average response times: " + avg.toFixed(2) + " ms");
+	console.log("--------------------------------------------------------------------------------");
+	console.log("Median response time of all client median response times: " + median.toFixed(2) + " ms");
 	console.log("--------------------------------------------------------------------------------");
 };
 

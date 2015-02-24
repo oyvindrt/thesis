@@ -55,7 +55,6 @@ var setEsHandlers = function() {
 			messagesReceived++;
 			var diff = Date.now() - parseInt(obj.sent);
 			responseTimes.push(diff);
-			
 			//if (id === 1) {
 			//	console.log("My id is 1 and I just received a message. Ping is: " + diff);
 			//}
@@ -70,7 +69,10 @@ var setEsHandlers = function() {
 				process.send(JSON.stringify({
 					"type": "done",
 					"gotAll": allRecv,
-					"ping": calculateAvgResponseTime()
+					"ping": {
+						"avg": calculateAvgResponseTime(),
+						"median": calculateMedianResponseTime()
+					}
 				}));
 			}, id*10);
 			es.close();
@@ -135,4 +137,17 @@ var calculateAvgResponseTime = function() {
 	avg = avg / responseTimes.length;
 	
 	return avg;
+};
+
+var calculateMedianResponseTime = function() {
+	var median;
+	responseTimes.sort(function(a, b){
+		return a - b;
+	});
+	if (responseTimes.length % 2 === 0) {
+		median = ((responseTimes[responseTimes.length/2] + responseTimes[(responseTimes.length/2)-1])/2);
+	} else {
+		median = responseTimes[(responseTimes.length+1) / 2];
+	}
+	return median;
 };
