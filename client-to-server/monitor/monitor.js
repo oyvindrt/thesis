@@ -34,7 +34,7 @@ function setupMonitor(pid) {
 			}
 			cpuAvg = cpuAvg / cpuLoadUnderChat.length;
 			
-			var memAfter = stats.mem;
+			var memAfter = parseInt(stats.mem);
 			
 			process.send(JSON.stringify({"type": "stats", "cpuAvgUnderChat":cpuAvg, "memAfter":memAfter}));
 		}
