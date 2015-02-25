@@ -17,6 +17,7 @@ var STATE = {
 
 var clients = {
 	count: undefined,
+	disconnected: 0,
 	state: STATE.NOT_STARTED,
 };
 
@@ -74,7 +75,9 @@ var setWsHandlers = function () {
 		});
 
 		socket.on('close', function(reason) {
-			if (wss.clients.length === 0) {
+			clients.disconnected++;
+			//if (wss.clients.length === 0) {
+			if (clients.disconnected === clients.count) {
 				clients.state = STATE.FINISHED;
 				console.log("All connected clients disconnected");
 				if (monitorState === STATE.FINISHED) {
@@ -114,6 +117,8 @@ var readyMonitor = function() {
 			console.log("Chat finished");
 			console.log("--------------------------------------------------------------------------------");
 			console.log("CPU load under chat: " + obj.cpuAvgUnderChat.toFixed(2) + " %");
+			console.log("--------------------------------------------------------------------------------");
+			console.log("Memory footprint after chat: " + obj.memAfter.toFixed(2) + " KB (" + (obj.memAfter/1000).toFixed(2) + " MB)");
 			console.log("--------------------------------------------------------------------------------");
 			if (clients.state === STATE.FINISHED) {
 				process.exit(0);

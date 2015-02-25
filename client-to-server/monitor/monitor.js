@@ -34,7 +34,9 @@ function setupMonitor(pid) {
 			}
 			cpuAvg = cpuAvg / cpuLoadUnderChat.length;
 			
-			process.send(JSON.stringify({"type": "stats", "cpuAvgUnderChat":cpuAvg}));
+			var memAfter = stats.mem;
+			
+			process.send(JSON.stringify({"type": "stats", "cpuAvgUnderChat":cpuAvg, "memAfter":memAfter}));
 		}
 	});
 }

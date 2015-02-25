@@ -164,6 +164,8 @@ var readyMonitor = function() {
 			console.log("--------------------------------------------------------------------------------");
 			console.log("CPU load under chat: " + obj.cpuAvgUnderChat.toFixed(2) + " %");
 			console.log("--------------------------------------------------------------------------------");
+			console.log("Memory footprint after chat: " + obj.memAfter.toFixed(2) + " KB (" + (obj.memAfter/1000).toFixed(2) + " MB)");
+			console.log("--------------------------------------------------------------------------------");
 			if (clients.state === STATE.FINISHED) {
 				process.exit(0);
 			}
