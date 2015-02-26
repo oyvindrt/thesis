@@ -48,7 +48,6 @@ var setWsHandlers = function () {
 				socket.send(JSON.stringify({"type":"info", "testDuration":TEST_DURATION}));
 			}
 			else if (obj.type === 'getReady') {
-				socket.close();
 				console.log("Get ready! Chat phase starting in " + (obj.startingIn/1000) + " seconds...");
 				readyMonitor();
 			}
@@ -71,18 +70,19 @@ var setWsHandlers = function () {
 					broadcast({"type": "done", "shouldHaveReceived": messageCount});
 					console.log("Server received timeup from clients");
 				}
+			} else if (obj.type === 'finished') {
+				socket.close();
+				clients.state = STATE.FINISHED;
+				if (monitorState === STATE.FINISHED) {
+					process.exit(0);
+				}
 			}
 		});
 
 		socket.on('close', function(reason) {
 			clients.disconnected++;
-			//if (wss.clients.length === 0) {
 			if (clients.disconnected === clients.count) {
-				clients.state = STATE.FINISHED;
 				console.log("All connected clients disconnected");
-				if (monitorState === STATE.FINISHED) {
-					process.exit(0);
-				}
 			}
 		});
 	
@@ -92,7 +92,8 @@ var setWsHandlers = function () {
 
 var broadcast = function(message) {
 	var msgToBroadcast = JSON.stringify(message);
-	for (var i = 0; i < wss.clients.length; i++) {
+	for (var i = 1; i < wss.clients.length; i++) {
+		// wss.clients[0] is the master client. No need to broadcast to him.
 		if (wss.clients[i]) {
 			wss.clients[i].send(msgToBroadcast);
 		}

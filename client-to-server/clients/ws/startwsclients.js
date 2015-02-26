@@ -48,8 +48,11 @@ var connectToServer = function() {
 			createClients();
 		}
 	});
-	server.on('close', function() {
-		//console.log("Connection to the WS server is now closed");
+	
+	server.on('close', function(code) {
+		if (code === 1000) {
+			process.exit(0);
+		}		
 	});
 };
 
@@ -105,7 +108,6 @@ var initiateChatPhase = function() {
 		"type": "getReady",
 		"startingIn": WAIT_TIME_BEFORE_CHAT
 	}));
-	server.close();
 	
 	var timeBeforeClientStartsChatting = TIME_BETWEEN_EACH_MESSAGE / clients.count;
 	
@@ -127,7 +129,10 @@ var killAllClientProcesses = function() {
 		clients.clients[i].kill();
 	}
 	console.log("All clients killed");
-	process.exit(0);
+	
+	server.send(JSON.stringify({
+		"type": "finished"
+	}));
 };
 
 var startTimer = function() {
