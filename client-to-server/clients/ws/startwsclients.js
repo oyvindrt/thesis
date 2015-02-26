@@ -6,7 +6,7 @@ var args = process.argv.slice(2);
 var HOST = args[0];
 
 var WAIT_TIME_BEFORE_CHAT = 3000;
-var TIME_BETWEEN_EACH_MESSAGE = 1000;
+var TIME_BETWEEN_EACH_MESSAGE = 3000;
 
 var TEST_DURATION;
 
@@ -107,7 +107,7 @@ var initiateChatPhase = function() {
 	}));
 	server.close();
 	
-	var timeBeforeClientStartsChatting = 1000 / clients.count;
+	var timeBeforeClientStartsChatting = TIME_BETWEEN_EACH_MESSAGE / clients.count;
 	
 	startTimer();
 	
@@ -155,9 +155,13 @@ var calculateAndPrintResponseTime = function() {
 		return a - b;
 	});
 	
-	if (clients.clientResponseTimes.median.length % 2 === 0) {
+	if (clients.clientResponseTimes.median.length === 1) {
+		median = clients.clientResponseTimes.median[0];
+	}
+	else if (clients.clientResponseTimes.median.length % 2 === 0) {
 		median = ((clients.clientResponseTimes.median[clients.clientResponseTimes.median.length/2] + clients.clientResponseTimes.median[(clients.clientResponseTimes.median.length/2)-1])/2);
-	} else {
+	}
+	else {
 		median = clients.clientResponseTimes.median[(clients.clientResponseTimes.median.length+1) / 2];
 	}
 	

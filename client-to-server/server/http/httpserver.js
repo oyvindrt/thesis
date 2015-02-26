@@ -62,7 +62,7 @@ httpServer.post('/info', function(req, res) {
 	}
 	else if (obj.type === 'finished') {
 		clients.state = STATE.FINISHED;
-		if (monitorState = STATE.FINISHED) {
+		if (monitorState === STATE.FINISHED) {
 			process.exit();
 		}
 	}

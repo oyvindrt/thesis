@@ -40,7 +40,9 @@ process.on('message', function(message) {
 		clearInterval(interval);
 		ws.send(JSON.stringify({
 			"type": "timeup"
-		}));
+		}), function ack(error) {
+			
+		});
 	}
 });
 

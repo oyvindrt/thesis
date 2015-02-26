@@ -82,9 +82,11 @@ var handleResponse = function(error, data) {
 		if (obj.messages) {
 			var arr = obj.messages;
 			for (var i = 0; i < arr.length; i++) {
+				var dateReceived = Date.now();
 				if (arr[i].type === "chat") {
 					messagesReceived++;
-					var diff = Date.now() - parseInt(arr[i].sent);
+					//var diff = Date.now() - parseInt(arr[i].sent);
+					var diff = dateReceived - parseInt(arr[i].sent);
 					responseTimes.push(diff);
 				} else if (arr[i].type === "done") {
 					done = true;
