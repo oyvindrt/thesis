@@ -26,12 +26,14 @@ process.on('message', function(message) {
 		setTimeout(function() {
 			
 			interval = setInterval(function() {
-				ws.send(JSON.stringify({
-					"type": "chat",
-					"from": id,
-					"sent": Date.now(),
-					"payload": "Hello! How are you doing today?"
-				}));
+				if (ws.readyState === WebSocket.OPEN) {	
+					ws.send(JSON.stringify({
+						"type": "chat",
+						"from": id,
+						"sent": Date.now(),
+						"payload": "Hello! How are you doing today?"
+					}));
+				}
 			}, timeBetweenEachMessage);
 			
 		}, id*timeBeforeChat);

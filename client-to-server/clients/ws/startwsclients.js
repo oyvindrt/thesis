@@ -52,7 +52,7 @@ var connectToServer = function() {
 	server.on('close', function(code) {
 		if (code === 1000) {
 			process.exit(0);
-		}		
+		}
 	});
 };
 
