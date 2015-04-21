@@ -1,0 +1,15 @@
+{
+  "name": "sseserver",
+  "version": "1.0.0",
+  "description": "",
+  "main": "sseserver.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "4.9.8",
+    "ws": "0.4.32"
+  }
+}

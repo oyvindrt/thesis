@@ -1,4 +1,0 @@
---reporter spec
---ui bdd
---growl
---compilers coffee:coffee-script
