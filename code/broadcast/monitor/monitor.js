@@ -31,10 +31,10 @@ process.on('message', function(m) {
 function setupMonitor() {
 	monitor.on('stats', function(stats) {
 		if (!started && !ended) {
-			cpuLoad.before.push(parseInt(stats.cpu));
+			cpuLoad.before.push(parseFloat(stats.cpu));
 			memLoad.before.push(parseInt(stats.mem));
 		} else if (started && !ended) {
-			cpuLoad.under.push(parseInt(stats.cpu));
+			cpuLoad.under.push(parseFloat(stats.cpu));
 		} else if (ended) {
 			// Only record memory footprint at end
 			memLoad.after.push(parseInt(stats.mem));
